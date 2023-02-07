@@ -11,5 +11,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         String boop = "boop";
+        String beepb00p = "beepb00p";
     }
 }
