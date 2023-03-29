@@ -4,29 +4,29 @@ public class WeatherDay {
 
 
     // INSTANCE VARIABLES
-    private double avgMinTemp;
+    private Double avgMinTemp;
 
-
-    // DEFAULT CONSTRUCTOR
-    public WeatherDay() {
-        avgMinTemp = 0.0;
-    }
-
-
-    // CALCULATE CONSTRUCTOR
-    public WeatherDay(double avgMinTemp) {
+    // CONSTRUCTOR
+    public WeatherDay(Double avgMinTemp) {
         this.avgMinTemp = avgMinTemp;
     }
 
-
-    // ACCESSORS
-    public double getAvgMinTemp() {
+    // GETTER
+    public Double getAvgMinTemp() {
         return avgMinTemp;
     }
 
-
-    // MUTATORS
-    public void setAvgMinTemp(double newAvgMinTemp) {
-        avgMinTemp = newAvgMinTemp;
+    // SETTER
+    public void setAvgMinTemp(Double avgMinTemp) {
+        this.avgMinTemp = avgMinTemp;
     }
 }
+
+
+
+
+//
+//    // ALTERNATE/OVERRIDEN??? CONSTRUCTOR
+//    public WeatherDay(double avgMinTemp) {
+//        this.avgMinTemp = avgMinTemp;
+//    }
