@@ -2,6 +2,7 @@ package com.example.arriveandthrive;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -19,10 +20,10 @@ public class Login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // obtain field values
-        final EditText username = findViewById(R.id.username);
+        final EditText username = findViewById(R.id.phone);
         final EditText password = findViewById(R.id.password);
         final Button loginBtn = findViewById(R.id.loginBtn);
-        final TextView registerBtn = findViewById(R.id.registerNowBtn);
+        final TextView registerNowBtn = findViewById(R.id.registerNowBtn);
 
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
@@ -38,7 +39,16 @@ public class Login extends AppCompatActivity {
                 } else {
                     // Login
 
+                    // display success login message
+                    Toast.makeText(Login.this, "Login successful", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+        registerNowBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Open register activity
+                startActivity(new Intent(Login.this, Register.class));
             }
         });
     }
