@@ -4,21 +4,45 @@ public class WeatherDay {
 
 
     // INSTANCE VARIABLES
-    private Double avgMinTemp;
+    private int avgMaxTemp;
+    private int avgMinTemp;
+    private int avgRainMM;
+    private int avgCloudCvrg;
 
     // CONSTRUCTOR
-    public WeatherDay(Double avgMinTemp) {
+    public WeatherDay(int avgMaxTemp, int avgMinTemp, int avgRainMM, int avgCloudCvrg) {
+        this.avgMaxTemp = avgMaxTemp;
         this.avgMinTemp = avgMinTemp;
+        this.avgRainMM = avgRainMM;
+        this.avgCloudCvrg = avgCloudCvrg;
     }
 
     // GETTER
-    public Double getAvgMinTemp() {
+    public int getAvgMaxTemp() {
+        return avgMaxTemp;
+    }
+    public int getAvgMinTemp() {
         return avgMinTemp;
     }
+    public int getAvgRainMM() {
+        return avgRainMM;
+    }
+    public int getAvgCloudCvrg() {
+        return avgCloudCvrg;
+    }
 
-    // SETTER
-    public void setAvgMinTemp(Double avgMinTemp) {
+    // SETTERS
+    public void setAvgMaxTemp(int avgMaxTemp) {
+        this.avgMaxTemp = avgMaxTemp;
+    }
+    public void setAvgMinTemp(int avgMinTemp) {
         this.avgMinTemp = avgMinTemp;
+    }
+    public void setAvgRainMM(int avgRainMM) {
+        this.avgRainMM = avgRainMM;
+    }
+    public void setAvgCloudCvrg(int avgCloudCvrg) {
+        this.avgCloudCvrg = avgCloudCvrg;
     }
 }
 
