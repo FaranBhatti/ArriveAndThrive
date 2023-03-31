@@ -1,4 +1,4 @@
-package com.example.arriveandthrive;
+package com.example.fireapp;
 
 public class User {
     private String username;
