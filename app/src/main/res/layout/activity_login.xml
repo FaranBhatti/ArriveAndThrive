@@ -27,21 +27,21 @@
         android:textStyle="bold" />
 
     <EditText
-        android:id="@+id/phone"
+        android:id="@+id/editTextUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:hint="Mobile Number"
-        android:inputType="phone"
+        android:hint="Username"
+        android:inputType="text"
         android:maxLines="1"
         android:minHeight="48dp"
         android:paddingStart="20dp"
         android:paddingEnd="0dp" />
 
     <EditText
-        android:id="@+id/password"
+        android:id="@+id/editTextPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -54,7 +54,7 @@
         android:paddingEnd="0dp" />
     
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/loginBtn"
+        android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -62,27 +62,26 @@
         android:text="Login"
         android:layout_marginTop="40dp" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnSignUp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="10dp" >
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:text="Sign Up"
+        android:layout_marginTop="20dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Don't have an account?" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:text="Delete Account"
+        android:layout_marginTop="20dp" />
 
-        <TextView
-            android:layout_marginStart="5dp"
-            android:id="@+id/registerNowBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Register Now"
-            android:textStyle="bold"/>
 
-    </LinearLayout>
+
 
 
 </LinearLayout>

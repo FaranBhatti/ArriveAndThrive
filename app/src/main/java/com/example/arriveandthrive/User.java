@@ -1,34 +1,23 @@
 package com.example.arriveandthrive;
 
 public class User {
-    private String fullname;
-    private String email;
+    private String username;
     private String password;
 
-    public User(String fullname, String email, String password) {
-        this.fullname = fullname;
-        this.email = email;
-        this.password = password;
+    public User() {
+
     }
 
-    public String getFullname() {
-        return fullname;
+    public String getUsername() {
+        return username;
     }
 
-    public String getEmail() {
-        return email;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
         return password;
-    }
-
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public void setPassword(String password) {
