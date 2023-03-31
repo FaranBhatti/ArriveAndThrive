@@ -121,8 +121,12 @@ public class Login extends AppCompatActivity {
                     User user = snapshot.getValue(User.class);
                     if(username.equals(user.getUsername()) && password.equals(user.getPassword())) {
                         match = true;
+
                         Toast.makeText(Login.this, "Access granted", Toast.LENGTH_LONG).show();
 
+                        // Go to home page
+                        Intent intent = new Intent(Login.this, home_page.class);
+                        startActivity(intent);
                     }
                 }
                 if(!match) {

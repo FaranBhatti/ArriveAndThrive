@@ -14,9 +14,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ArriveAndThrive"
         tools:targetApi="31">
-
         <activity
-            android:name="com.example.arriveandthrive.Login"
+            android:name=".currency_converter"
+            android:exported="false" />
+        <activity
+            android:name=".weather"
+            android:exported="false" />
+        <activity
+            android:name=".configure_user"
+            android:exported="false" />
+        <activity
+            android:name=".home_page"
+            android:exported="false" />
+        <activity
+            android:name=".Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
