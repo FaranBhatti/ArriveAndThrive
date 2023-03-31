@@ -15,15 +15,6 @@
         android:theme="@style/Theme.ArriveAndThrive"
         tools:targetApi="31">
         <activity
-            android:name=".currency_converter"
-            android:exported="false" />
-        <activity
-            android:name=".weather"
-            android:exported="false" />
-        <activity
-            android:name=".configure_user"
-            android:exported="false" />
-        <activity
             android:name=".home_page"
             android:exported="false" />
         <activity
