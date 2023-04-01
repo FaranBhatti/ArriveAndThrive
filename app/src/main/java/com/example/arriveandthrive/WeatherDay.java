@@ -7,13 +7,15 @@ public class WeatherDay {
     private int avgMaxTemp;
     private int avgMinTemp;
     private int avgRainMM;
+    private int chanceOfRain;
     private int avgCloudCvrg;
 
     // CONSTRUCTOR
-    public WeatherDay(int avgMaxTemp, int avgMinTemp, int avgRainMM, int avgCloudCvrg) {
+    public WeatherDay(int avgMaxTemp, int avgMinTemp, int avgRainMM, int chanceOfRain, int avgCloudCvrg) {
         this.avgMaxTemp = avgMaxTemp;
         this.avgMinTemp = avgMinTemp;
         this.avgRainMM = avgRainMM;
+        this.chanceOfRain = chanceOfRain;
         this.avgCloudCvrg = avgCloudCvrg;
     }
 
@@ -26,6 +28,9 @@ public class WeatherDay {
     }
     public int getAvgRainMM() {
         return avgRainMM;
+    }
+    public int getChanceOfRain() {
+        return chanceOfRain;
     }
     public int getAvgCloudCvrg() {
         return avgCloudCvrg;
@@ -40,6 +45,9 @@ public class WeatherDay {
     }
     public void setAvgRainMM(int avgRainMM) {
         this.avgRainMM = avgRainMM;
+    }
+    public void setChanceOfRain(int chanceOfRain) {
+        this.chanceOfRain = chanceOfRain;
     }
     public void setAvgCloudCvrg(int avgCloudCvrg) {
         this.avgCloudCvrg = avgCloudCvrg;
