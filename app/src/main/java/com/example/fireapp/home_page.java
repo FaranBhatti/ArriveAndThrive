@@ -42,8 +42,8 @@ public class home_page extends AppCompatActivity {
         // Currency Converter button
         btnCurrencyConverter.setOnClickListener(view -> {
             // take to the currency converter page
-            //Intent intent = new Intent(home_page.this, currency_converter.class);
-            //startActivity(intent);
+            Intent intent = new Intent(home_page.this, currency_converter.class);
+            startActivity(intent);
         });
 
         // Ticketmaster button
