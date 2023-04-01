@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.time.Month;
 import java.util.ArrayList;
 import android.util.Log;
 
@@ -46,13 +48,11 @@ import com.google.gson.JsonObject;
 
 public class MainActivity extends AppCompatActivity {
     private final String forecast14Days_url = "https://api.openweathermap.org/data/2.5/forecast/daily";
-
     private final String historical_month_url = "https://history.openweathermap.org/data/2.5/aggregated/day";
     // see above API info here: https://openweathermap.org/api/statistics-api
     private final String appid = "5a055dbf56ab6f415567d8a482c453f2";
     private String tempUrl;
-    DecimalFormat df = new DecimalFormat("#.##");
-
+    private DecimalFormat df = new DecimalFormat("#.##");
     private int arriveYear;
     private int arriveMonth;
     private String arriveMonth_str;
@@ -70,13 +70,18 @@ public class MainActivity extends AppCompatActivity {
     private long totalTripDays;
     private int daysBtwNowAndArrive;
     private int daysBtwNowAndLeave;
+    private int daysUntilAPICutOff;
+    private int daysAfterAPICutOff;
+    private int cutOffMonth;
+    private int cutOffDay;
+    private int num14APIDays;
+    private int numHistoricalAPIDays;
     private String countryCode;
     private String cityName;
     private boolean arriveMoreThan14Future = false;
     private boolean leaveMoreThan14Future = false;
     private List<WeatherDay> weatherDayList = new ArrayList<>();
     private int dayNum = 0;
-
     private String weather_days_str;
     private OkHttpClient client = new OkHttpClient();
 
@@ -86,20 +91,43 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         // INITIALIZE EACH WeatherDay OBJECT IN weatherDayList
         for (int i = 0; i < 14; i++) {
             weatherDayList.add(new WeatherDay(0, 0, 0, 0, 0));
         }
 
+
+        // CALCULATION OF CURRENT DATE GIVEN PST TIME ZONE
+        LocalDate localDate = LocalDate.now();
+        ZoneId zone = ZoneId.of("America/Los_Angeles"); // PST
+        ZonedDateTime zonedDate = localDate.atStartOfDay(zone);
+        LocalDate currentZonedDate = zonedDate.toLocalDate();
+
+
         // DUMMY VARIABLES FOR TESTING
         arriveYear = 2023;
-        arriveMonth = 4; //4(works with current date forced into the future) or 4(works) or 5(works) or 6(works)
-        arriveDay = 3; //28(works with current date forced into the future) or 3(works) or 27(works) or 9(works)
+        arriveMonth = 3;
+        arriveDay = 27;
+
         leaveYear = 2023;
-        leaveMonth = 4; //5(works with current date forced into the future) or 4(works) or 6(works) or 6(works)
-        leaveDay = 8; //2(works with current date forced into the future) or 8(works) or 3(works) or 15(works)
+        leaveMonth = 4;
+        leaveDay = 9;
+
+        // must change this to be towards end of month to test 14 DAY API leaveMonth != arriveMonth
+        currentZonedDate = LocalDate.of(2023, 3, 25);
+        Log.d("DEBUG LOG", "currentZonedDate: " + currentZonedDate);
+
         countryCode = "CA";
         cityName = "Vancouver";
+
+        // |_________SCENARIO_________|__ARRIVE__|__LEAVE__|__"TODAY"__|__VERIFIED__|
+        // | Historical only: aM=lM   |   6/10   |  6/23   |   Real    |    YES     |
+        // | Historical only: aM!=lM  |   6/25   |  7/8    |   Real    |    YES     |
+        // |   14 Day only: aM=lM     |   4/2    |  4/15   |   Real    |    YES     |
+        // |   14 Day only: aM!=lM    |   4/25   |  5/8    |   4/24    |    YES     |
+        // |   Combo: aM=cM,lM=cM     |   2/7    |  2/20   |   2/1     |    YES     |
+        // |   Combo: aM!=cM,lM=cM    |   3/27   |  4/9    |   3/25    |    YES     |
 
 
         // BUNDLE FOR RETRIEVING DATE AND LOCATION INFORMATION
@@ -115,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
 //            cityName = dates_and_location.getString("cityName");
 //        }
 
+        // CONVERT MONTHS AND DAYS TO STRINGS
         arriveMonth_str = Integer.toString(arriveMonth);
         arriveDay_str = Integer.toString(arriveDay);
         leaveMonth_str = Integer.toString(leaveMonth);
@@ -124,18 +153,8 @@ public class MainActivity extends AppCompatActivity {
         // CALCULATION OF TOTAL TRIP LENGTH IN DAYS
         LocalDate arriveDate = LocalDate.of(arriveYear, arriveMonth, arriveDay);
         LocalDate leaveDate = LocalDate.of(leaveYear, leaveMonth, leaveDay);
-        long totalTripDays = (leaveDate.toEpochDay() - arriveDate.toEpochDay()) + 1;
+        totalTripDays = (leaveDate.toEpochDay() - arriveDate.toEpochDay()) + 1;
         Log.d("DEBUG LOG", "totalTripDays: " + totalTripDays);
-
-
-        // CALCULATION OF CURRENT DATE GIVEN PST TIME ZONE
-        LocalDate localDate = LocalDate.now();
-        ZoneId zone = ZoneId.of("America/Los_Angeles"); // PST
-        ZonedDateTime zonedDate = localDate.atStartOfDay(zone);
-        LocalDate currentZonedDate = zonedDate.toLocalDate();
-        // must change this to be towards end of month to test 14 DAY API leaveMonth != arriveMonth
-        //currentZonedDate = LocalDate.of(2023, 4, 25);
-        Log.d("DEBUG LOG", "currentZonedDate: " + currentZonedDate);
 
 
         // CALCULATION OF DAYS IN ARRIVE MONTH and LEAVE MONTH
@@ -159,387 +178,601 @@ public class MainActivity extends AppCompatActivity {
         // CALCULATION OF WHETHER -LEAVE- DATE IS MORE THAN 14 DAYS IN THE FUTURE
         if ((leaveDate.toEpochDay() - currentZonedDate.toEpochDay()) <= 14) {
             leaveMoreThan14Future = false;
-
-            daysBtwNowAndArrive = (int) (arriveDate.toEpochDay() - currentZonedDate.toEpochDay());
-            Log.d("DEBUG LOG", "daysBtwNowAndArrive: " + daysBtwNowAndArrive);
-            daysBtwNowAndLeave = (int) (leaveDate.toEpochDay() - currentZonedDate.toEpochDay());
-            Log.d("DEBUG LOG", "daysBtwNowAndLeave: " + daysBtwNowAndLeave);
-
         } else {
             leaveMoreThan14Future = true;
         }
 
 
-        //////////// DECISION TREE TO USE 14 DAY, HISTORICAL, OR COMBO APIs ////////////
+        // CALCULATION OF DAYS BETWEEN NOW AND ARRIVE/LEAVE
+        daysBtwNowAndArrive = (int) (arriveDate.toEpochDay() - currentZonedDate.toEpochDay());
+        Log.d("DEBUG LOG", "daysBtwNowAndArrive: " + daysBtwNowAndArrive);
+        daysBtwNowAndLeave = (int) (leaveDate.toEpochDay() - currentZonedDate.toEpochDay());
+        Log.d("DEBUG LOG", "daysBtwNowAndLeave: " + daysBtwNowAndLeave);
 
-        // USE 14 DAY API
-        if (arriveMoreThan14Future == false && leaveMoreThan14Future == false) {
 
-            // IF ARRIVE MONTH != LEAVE MONTH //////////////////////////////////////////////////////////////////
-            if (arriveMonth != leaveMonth) {
+        // CALCULATION OF 14/15 DAY API CUTOFF MONTHS
+        LocalDate cutOffDate = currentZonedDate.plusDays(14);
+        Month cutOffDateMonth = cutOffDate.getMonth();
+        cutOffDay = cutOffDate.getDayOfMonth();
+        Log.d("DEBUG LOG", "cutOffDay: " + cutOffDay);
+        cutOffMonth = cutOffDateMonth.getValue();
+        Log.d("DEBUG LOG", "cutOffMonth: " + cutOffMonth);
 
-                dayNum = 0;
-                Log.d("DEBUG LOG", "arriveMonth != leaveMonth");
-                Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
-                Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+        if ((arriveMonth != cutOffMonth) && (leaveMonth == cutOffMonth)) {
+            num14APIDays = ((int) cutOffDate.toEpochDay()) - ((int) arriveDate.toEpochDay()) + 1;
+            Log.d("DEBUG LOG", "num14APIDays: " + num14APIDays);
+            numHistoricalAPIDays = leaveDay - cutOffDay;
+            Log.d("DEBUG LOG", "numHistoricalAPIDays: " + numHistoricalAPIDays);
 
-                if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
-                    Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+        } else if ((arriveMonth == cutOffMonth) && (leaveMonth == cutOffMonth)) {
+            num14APIDays = cutOffDay - arriveDay + 1;
+            Log.d("DEBUG LOG", "num14APIDays: " + num14APIDays);
+            numHistoricalAPIDays = leaveDay - cutOffDay;
+            Log.d("DEBUG LOG", "numHistoricalAPIDays: " + numHistoricalAPIDays);
 
-                } else {
-                    tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
-                    Log.d("DEBUG LOG", "tempUrl arrive: " + tempUrl);
-
-                    NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
-                        @Override
-                        public void onNetworkTaskComplete(String response) {
-                            // Do something with the response here
-                            Log.d("DEBUG LOG", "Arrive NT Response in MAIN: " + response);
-
-                            // Handle the response
-                            if (response != null) {
-
-                                double averageMax = 0;
-                                double averageMin = 0;
-                                double chanceOfRain = 0;
-                                double averageCloudCoverage = 0;
-                                for (int i = daysBtwNowAndArrive - 1; i < (daysBtwNowAndArrive + daysInArriveMonth) - 1; i++) {
-
-                                    Log.d("DEBUG LOG", "Arrive count: " + dayNum);
-                                    Gson gson = new Gson();
-                                    JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-                                    JsonArray listArray = jsonObject.getAsJsonArray("list");
-                                    JsonObject firstListObject = listArray.get(i).getAsJsonObject();
-                                    JsonObject tempObject = firstListObject.getAsJsonObject("temp");
-                                    averageMax = tempObject.get("max").getAsDouble();
-                                    averageMin = tempObject.get("min").getAsDouble();
-                                    chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
-                                    averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
-                                    Log.d("DEBUG LOG", "Arrive averageMax: " + ((int) Math.round(averageMax)));
-                                    Log.d("DEBUG LOG", "Arrive averageMin: " + ((int) Math.round(averageMin)));
-                                    Log.d("DEBUG LOG", "Arrive chanceOfRain: " + ((int) Math.round(chanceOfRain)));
-                                    Log.d("DEBUG LOG", "Arrive averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
-
-                                    if (weatherDayList != null) {
-                                        weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
-                                        weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
-                                        weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
-                                        weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
-                                    }
-
-                                    dayNum = dayNum + 1;
-
-                                }
-
-                            } else {
-                                // Handle the error or null response
-                                dayNum = dayNum;
-                            }
-                        }
-                    });
-                    networkTask.execute();
-                }
-
-                Log.d("DEBUG LOG", "daysInLeaveMonth: " + daysInLeaveMonth);
-                Log.d("DEBUG LOG", "LeaveDay initial: " + leaveDay);
-
-                if (cityName.equals("") || countryCode.equals("") || leaveMonth_str.equals("")) {
-                    Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
-
-                } else {
-                    tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
-                    Log.d("DEBUG LOG", "tempUrl leave: " + tempUrl);
-
-                    NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
-                        @Override
-                        public void onNetworkTaskComplete(String response) {
-                            Log.d("DEBUG LOG", "Leave NT Response in MAIN: " + response);
-
-                            // Handle the response
-                            if (response != null) {
-
-                                double averageMax = 0;
-                                double averageMin = 0;
-                                double chanceOfRain = 0;
-                                double averageCloudCoverage = 0;
-                                for (int i = daysBtwNowAndArrive + daysInArriveMonth - 1; i < (daysBtwNowAndArrive + totalTripDays) - 1; i++) {
-
-                                    Log.d("DEBUG LOG", "Leave count: " + dayNum);
-                                    Gson gson = new Gson();
-                                    JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-                                    JsonArray listArray = jsonObject.getAsJsonArray("list");
-                                    JsonObject firstListObject = listArray.get(i).getAsJsonObject();
-                                    JsonObject tempObject = firstListObject.getAsJsonObject("temp");
-                                    averageMax = tempObject.get("max").getAsDouble();
-                                    averageMin = tempObject.get("min").getAsDouble();
-                                    chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
-                                    averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
-                                    Log.d("DEBUG LOG", "Leave averageMax: " + ((int) Math.round(averageMax)));
-                                    Log.d("DEBUG LOG", "Leave averageMin: " + ((int) Math.round(averageMin)));
-                                    Log.d("DEBUG LOG", "Leave chanceOfRain: " + ((int) Math.round(chanceOfRain)));
-                                    Log.d("DEBUG LOG", "Leave averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
-
-                                    if (weatherDayList != null) {
-                                        weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
-                                        weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
-                                        weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
-                                        weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
-                                    }
-
-                                    dayNum = dayNum + 1;
-
-                                }
-
-                            } else {
-                                // Handle the error or null reponse
-                                dayNum = dayNum;
-                            }
-                        }
-                    });
-                    networkTask.execute();
-                }
-
-            // IF ARRIVE MONTH = LEAVE MONTH //
-            } else {
-
-                dayNum = 0;
-                Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
-                Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
-
-                if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
-                    Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
-
-                } else {
-                    tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
-                    Log.d("DEBUG LOG", "tempUrl: " + tempUrl);
-
-                    NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
-                        @Override
-                        public void onNetworkTaskComplete(String response) {
-                            Log.d("DEBUG LOG", "Arrive NT Response in MAIN: " + response);
-
-                            // Handle the response
-                            if (response != null) {
-
-                                double averageMax = 0;
-                                double averageMin = 0;
-                                double chanceOfRain = 0;
-                                double averageCloudCoverage = 0;
-                                for (int i = daysBtwNowAndArrive - 1; i < (daysBtwNowAndArrive + totalTripDays) - 1; i++) {
-
-                                    Log.d("DEBUG LOG", "Arrive count: " + dayNum);
-                                    Gson gson = new Gson();
-                                    JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-                                    JsonArray listArray = jsonObject.getAsJsonArray("list");
-                                    JsonObject firstListObject = listArray.get(i).getAsJsonObject();
-                                    JsonObject tempObject = firstListObject.getAsJsonObject("temp");
-                                    averageMax = tempObject.get("max").getAsDouble();
-                                    averageMin = tempObject.get("min").getAsDouble();
-                                    chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
-                                    averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
-                                    Log.d("DEBUG LOG", "Arrive averageMax: " + ((int) Math.round(averageMax)));
-                                    Log.d("DEBUG LOG", "Arrive averageMin: " + ((int) Math.round(averageMin)));
-                                    Log.d("DEBUG LOG", "Arrive chanceOfRain: " + ((int) Math.round(chanceOfRain)));
-                                    Log.d("DEBUG LOG", "Arrive averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
-
-                                    if (weatherDayList != null) {
-                                        weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
-                                        weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
-                                        weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
-                                        weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
-                                    }
-
-                                    dayNum = dayNum + 1;
-
-                                }
-
-                            } else {
-                                // Handle the error or null reponse
-                                dayNum = dayNum;
-                            }
-                        }
-                    });
-                    networkTask.execute();
-                }
-            }
-
-        // USE HISTORICAL API
-        } else if (arriveMoreThan14Future && leaveMoreThan14Future) {
-
-            if (arriveMonth != leaveMonth) {
-                dayNum = 0;
-                Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
-                Log.d("DEBUG LOG", "daysInLeaveMonth: " + daysInLeaveMonth);
-                Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
-                Log.d("DEBUG LOG", "leaveDayLoop initial: " + leaveDayLoop);
-
-                for (int i = 0; i < daysInArriveMonth; i++) {
-                    if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
-                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
-
-                    } else {
-                        tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + arriveMonth_str + "&day=" + arriveDay_str + "&appid=" + appid;
-
-                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
-                            @Override
-                            public void onNetworkTaskComplete(String response) {
-                                Log.d("DEBUG LOG", "Arrive NT Response in MAIN: " + response);
-
-                                // Handle the response
-                                if (response != null) {
-
-                                    dayNum = dayNum + 1;
-                                    Log.d("DEBUG LOG", "Arrive count: " + dayNum);
-                                    Gson gson = new Gson();
-                                    JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-                                    double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
-                                    double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
-                                    double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
-                                    double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
-
-                                    if (weatherDayList != null) {
-                                        weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
-                                        weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
-                                        weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
-                                        weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
-                                    }
-                                } else {
-                                    // Handle the error or null reponse
-                                    dayNum = dayNum;
-                                }
-                            }
-                        });
-                        networkTask.execute();
-                        arriveDay = arriveDay + 1;
-                        arriveDay_str = Integer.toString(arriveDay);
-                    }
-                }
-
-                leaveDayLoop = 1;
-                leaveDayLoop_str = Integer.toString(leaveDayLoop);
-
-                for (int i = 0; i < daysInLeaveMonth; i++) {
-                    if (cityName.equals("") || countryCode.equals("") || leaveMonth_str.equals("")) {
-                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
-
-                    } else {
-                        tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + leaveMonth_str + "&day=" + leaveDayLoop_str + "&appid=" + appid;
-
-                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
-                            @Override
-                            public void onNetworkTaskComplete(String response) {
-                                Log.d("DEBUG LOG", "Leave NT Response in MAIN: " + response);
-
-                                // Handle the response
-                                if (response != null) {
-
-                                    dayNum = dayNum + 1;
-                                    Log.d("DEBUG LOG", "Leave count: " + dayNum);
-                                    Gson gson = new Gson();
-                                    JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-                                    double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
-                                    double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
-                                    double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
-                                    double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
-
-                                    if (weatherDayList != null) {
-                                        weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
-                                        weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
-                                        weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
-                                        weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
-                                        Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
-                                    }
-
-                                } else {
-                                    // Handle the error or null reponse
-                                    dayNum = dayNum;
-                                }
-                            }
-                        });
-                        networkTask.execute();
-                        leaveDayLoop = leaveDayLoop + 1;
-                        leaveDayLoop_str = Integer.toString(leaveDayLoop);
-                    }
-                }
-
-            // IF ARRIVE MONTH = LEAVE MONTH
-            } else {
-
-                dayNum = 0;
-                Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
-                Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
-
-                for (int i = 0; i < daysInArriveMonth; i++) {
-                    if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
-                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
-
-                    } else {
-                        tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + arriveMonth_str + "&day=" + arriveDay_str + "&appid=" + appid;
-
-                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
-                            @Override
-                            public void onNetworkTaskComplete(String response) {
-                                Log.d("DEBUG LOG", "Arrive NT Response in MAIN: " + response);
-
-                                // Handle the response
-                                if (response != null) {
-
-                                    dayNum = dayNum + 1;
-                                    Log.d("DEBUG LOG", "Arrive count: " + dayNum);
-                                    Gson gson = new Gson();
-                                    JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-                                    double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
-                                    double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
-                                    double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
-                                    double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
-
-                                    if (weatherDayList != null) {
-                                        weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
-                                        weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
-                                        weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
-                                        weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
-                                        Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
-                                    }
-                                } else {
-                                    // Handle the error or null reponse
-                                    dayNum = dayNum;
-                                }
-                            }
-                        });
-                        networkTask.execute();
-                        arriveDay = arriveDay + 1;
-                        arriveDay_str = Integer.toString(arriveDay);
-                    }
-                }
-            }
+        } else {
+            Log.d("DEBUG LOG", "COMBO APIs not needed");
         }
 
-        //arriveMoreThan14Future == false but leaveMoreThan14Future == true
-        // USE COMBO API
-        else {
-            int test = 1;
+
+        //////////// DECISION TREE TO USE 14 DAY, HISTORICAL, OR COMBO APIs ////////////
+        if (totalTripDays <= 14) {
+
+            ///////////////////////////////////////////////////////// USE 14 DAY API ////////////////////////////////////////////////////////
+            if (arriveMoreThan14Future == false && leaveMoreThan14Future == false) {
+
+                // IF ARRIVE MONTH != LEAVE MONTH
+                if (arriveMonth != leaveMonth) {
+
+                    dayNum = 0;
+                    Log.d("DEBUG LOG", "arriveMonth != leaveMonth");
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+
+                    if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
+                        Log.d("DEBUG LOG", "ArriveMonth != LeaveMonth 14 Day API tempUrl: " + tempUrl);
+
+                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                            @Override
+                            public void onNetworkTaskComplete(String response) {
+                                Log.d("DEBUG LOG", "Arrive 14 Day API Response in MAIN: " + response);
+
+                                // Handle the response
+                                if (response != null) {
+
+                                    double averageMax = 0;
+                                    double averageMin = 0;
+                                    double chanceOfRain = 0;
+                                    double averageCloudCoverage = 0;
+                                    for (int i = daysBtwNowAndArrive - 1; i <= num14APIDays-1; i++)  {
+
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        JsonArray listArray = jsonObject.getAsJsonArray("list");
+                                        JsonObject firstListObject = listArray.get(i).getAsJsonObject();
+                                        JsonObject tempObject = firstListObject.getAsJsonObject("temp");
+                                        averageMax = tempObject.get("max").getAsDouble();
+                                        averageMin = tempObject.get("min").getAsDouble();
+                                        chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
+                                        averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
+                                        Log.d("DEBUG LOG", "Arrive averageMax: " + ((int) Math.round(averageMax)));
+                                        Log.d("DEBUG LOG", "Arrive averageMin: " + ((int) Math.round(averageMin)));
+                                        Log.d("DEBUG LOG", "Arrive chanceOfRain: " + ((int) Math.round(chanceOfRain)));
+                                        Log.d("DEBUG LOG", "Arrive averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
+                                            weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
+                                        }
+                                        dayNum = dayNum + 1;
+                                    }
+
+                                } else {
+                                    // Handle the error or null response
+                                    dayNum = dayNum;
+                                }
+                            }
+                        });
+                        networkTask.execute();
+                    }
+
+
+                // 14 DAY API IF ARRIVE MONTH = LEAVE MONTH
+                } else {
+
+                    dayNum = 0;
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+
+                    if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
+                        Log.d("DEBUG LOG", "ArriveMonth = LeaveMonth 14 Day API tempUrl: " + tempUrl);
+
+                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                            @Override
+                            public void onNetworkTaskComplete(String response) {
+                                Log.d("DEBUG LOG", "ArriveMonth = LeaveMonth 14 Day API Response: " + response);
+
+                                // Handle the response
+                                if (response != null) {
+
+                                    double averageMax = 0;
+                                    double averageMin = 0;
+                                    double chanceOfRain = 0;
+                                    double averageCloudCoverage = 0;
+                                    for (int i = daysBtwNowAndArrive - 1; i < (daysBtwNowAndArrive + totalTripDays) - 1; i++) {
+
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        JsonArray listArray = jsonObject.getAsJsonArray("list");
+                                        JsonObject firstListObject = listArray.get(i).getAsJsonObject();
+                                        JsonObject tempObject = firstListObject.getAsJsonObject("temp");
+                                        averageMax = tempObject.get("max").getAsDouble();
+                                        averageMin = tempObject.get("min").getAsDouble();
+                                        chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
+                                        averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
+                                        Log.d("DEBUG LOG", "Arrive averageMax: " + ((int) Math.round(averageMax)));
+                                        Log.d("DEBUG LOG", "Arrive averageMin: " + ((int) Math.round(averageMin)));
+                                        Log.d("DEBUG LOG", "Arrive chanceOfRain: " + ((int) Math.round(chanceOfRain)));
+                                        Log.d("DEBUG LOG", "Arrive averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
+                                            weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
+                                        }
+                                        dayNum = dayNum + 1;
+                                    }
+
+                                } else {
+                                    // Handle the error or null reponse
+                                    dayNum = dayNum;
+                                }
+                            }
+                        });
+                        networkTask.execute();
+                    }
+                }
+
+            //////////////////////////////////////////////////// USE HISTORICAL API /////////////////////////////////////////////////
+            } else if (arriveMoreThan14Future && leaveMoreThan14Future) {
+
+                if (arriveMonth != leaveMonth) {
+                    dayNum = 0;
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "daysInLeaveMonth: " + daysInLeaveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+                    Log.d("DEBUG LOG", "leaveDayLoop initial: " + leaveDayLoop);
+
+                    for (int i = 0; i < daysInArriveMonth; i++) {
+                        if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                            Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + arriveMonth_str + "&day=" + arriveDay_str + "&appid=" + appid;
+                            Log.d("DEBUG LOG", "ArriveMonth != LeaveMonth Historical API ARRIVE tempUrl: " + tempUrl);
+
+                            NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                                @Override
+                                public void onNetworkTaskComplete(String response) {
+                                    Log.d("DEBUG LOG", "Arrive Historical API Response: " + response);
+
+                                    // Handle the response
+                                    if (response != null) {
+
+                                        dayNum = dayNum + 1;
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
+                                        double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
+                                        double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
+                                        double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
+                                            weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
+                                        }
+                                    } else {
+                                        // Handle the error or null reponse
+                                        dayNum = dayNum;
+                                    }
+                                }
+                            });
+                            networkTask.execute();
+                            arriveDay = arriveDay + 1;
+                            arriveDay_str = Integer.toString(arriveDay);
+                        }
+                    }
+
+                    leaveDayLoop = 1;
+                    leaveDayLoop_str = Integer.toString(leaveDayLoop);
+
+                    for (int i = 0; i < daysInLeaveMonth; i++) {
+                        if (cityName.equals("") || countryCode.equals("") || leaveMonth_str.equals("")) {
+                            Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + leaveMonth_str + "&day=" + leaveDayLoop_str + "&appid=" + appid;
+                            Log.d("DEBUG LOG", "ArriveMonth != LeaveMonth Historical API LEAVE tempUrl: " + tempUrl);
+
+                            NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                                @Override
+                                public void onNetworkTaskComplete(String response) {
+                                    Log.d("DEBUG LOG", "Leave Historical API Response: " + response);
+
+                                    // Handle the response
+                                    if (response != null) {
+
+                                        dayNum = dayNum + 1;
+                                        Log.d("DEBUG LOG", "Leave count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
+                                        double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
+                                        double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
+                                        double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
+                                            weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
+                                            Log.d("DEBUG LOG", "Leave weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
+                                        }
+
+                                    } else {
+                                        // Handle the error or null reponse
+                                        dayNum = dayNum;
+                                    }
+                                }
+                            });
+                            networkTask.execute();
+                            leaveDayLoop = leaveDayLoop + 1;
+                            leaveDayLoop_str = Integer.toString(leaveDayLoop);
+                        }
+                    }
+
+                // HISTORICAL API IF ARRIVE MONTH = LEAVE MONTH
+                } else {
+
+                    dayNum = 0;
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+
+                    for (int i = 0; i < daysInArriveMonth; i++) {
+                        if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                            Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + arriveMonth_str + "&day=" + arriveDay_str + "&appid=" + appid;
+                            Log.d("DEBUG LOG", "ArriveMonth = LeaveMonth Historical API tempUrl: " + tempUrl);
+
+                            NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                                @Override
+                                public void onNetworkTaskComplete(String response) {
+                                    Log.d("DEBUG LOG", "ArriveMonth = LeaveMonth Historical Response: " + response);
+
+                                    // Handle the response
+                                    if (response != null) {
+
+                                        dayNum = dayNum + 1;
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
+                                        double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
+                                        double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
+                                        double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
+                                            weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
+                                        }
+                                    } else {
+                                        // Handle the error or null reponse
+                                        dayNum = dayNum;
+                                    }
+                                }
+                            });
+                            networkTask.execute();
+                            arriveDay = arriveDay + 1;
+                            arriveDay_str = Integer.toString(arriveDay);
+                        }
+                    }
+                }
+            }
+
+            //////////////////////////////// arriveMoreThan14Future == false but leaveMoreThan14Future == true ////////////////////////////////
+            // USE COMBO API
+            else {
+                // COMBO BRANCH A: CALCULATION OF COMBO API CUTOFF SPANS
+                daysUntilAPICutOff = 14 - daysBtwNowAndArrive;
+                daysAfterAPICutOff = daysBtwNowAndLeave - 14;
+                Log.d("DEBUG LOG", "ENTERED COMBO BRANCH");
+
+                if ((arriveMonth == cutOffMonth) && (leaveMonth == cutOffMonth)) {
+                    Log.d("DEBUG LOG", "ENTERED COMBO BRANCH (A)");
+
+                    // COMBO BRANCH A: USE 14 DAY API ARRIVE MONTH = CUTOFF MONTH
+                    dayNum = 0;
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+
+                    if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
+                        Log.d("DEBUG LOG", "BRANCH A - 14 DAY API tempUrl: " + tempUrl);
+
+                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                            @Override
+                            public void onNetworkTaskComplete(String response) {
+                                Log.d("DEBUG LOG", "BRANCH A - 14 API Response: " + response);
+
+                                // Handle the response
+                                if (response != null) {
+
+                                    double averageMax = 0;
+                                    double averageMin = 0;
+                                    double chanceOfRain = 0;
+                                    double averageCloudCoverage = 0;
+                                    for (int i = daysBtwNowAndArrive - 1; i < (daysBtwNowAndArrive + num14APIDays) - 1; i++) {
+
+                                        Log.d("DEBUG LOG", "daysBtwNowAndArrive: " + daysBtwNowAndArrive);
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        JsonArray listArray = jsonObject.getAsJsonArray("list");
+                                        JsonObject firstListObject = listArray.get(i).getAsJsonObject();
+                                        JsonObject tempObject = firstListObject.getAsJsonObject("temp");
+                                        averageMax = tempObject.get("max").getAsDouble();
+                                        averageMin = tempObject.get("min").getAsDouble();
+                                        chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
+                                        averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
+                                        Log.d("DEBUG LOG", "Arrive averageMax: " + ((int) Math.round(averageMax)));
+                                        Log.d("DEBUG LOG", "Arrive averageMin: " + ((int) Math.round(averageMin)));
+                                        Log.d("DEBUG LOG", "Arrive chanceOfRain: " + ((int) Math.round(chanceOfRain)));
+                                        Log.d("DEBUG LOG", "Arrive averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
+                                            weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
+                                        }
+                                        dayNum = dayNum + 1;
+                                    }
+
+                                } else {
+                                    // Handle the error or null reponse
+                                    dayNum = dayNum;
+                                }
+                            }
+                        });
+                        networkTask.execute();
+                    }
+
+                    // COMBO BRANCH A: USE HISTORICAL API ARRIVE MONTH = CUTOFF MONTH
+                    //dayNum = 0;
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+
+                    for (int i = cutOffDay + 1; i <= leaveDay; i++) {
+                        if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                            Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + arriveMonth_str + "&day=" + i + "&appid=" + appid;
+                            Log.d("DEBUG LOG", "BRANCH A - Historical API tempUrl: " + tempUrl);
+
+                            NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                                @Override
+                                public void onNetworkTaskComplete(String response) {
+                                    Log.d("DEBUG LOG", "BRANCH A - Historical API Response: " + response);
+
+                                    // Handle the response
+                                    if (response != null) {
+
+                                        dayNum = dayNum + 1;
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble();//- 273.15;
+                                        double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble();// - 273.15;
+                                        double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
+                                        double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
+                                            weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
+                                        }
+                                    } else {
+                                        // Handle the error or null reponse
+                                        dayNum = dayNum;
+                                    }
+                                }
+                            });
+                            networkTask.execute();
+                            arriveDay = arriveDay + 1;
+                            arriveDay_str = Integer.toString(arriveDay);
+                        }
+                    }
+
+                // COMBO BRANCH B
+                } else if ((arriveMonth != cutOffMonth) && (leaveMonth == cutOffMonth)) {
+                    Log.d("DEBUG LOG", "ENTERED COMBO BRANCH (B)");
+
+                    // COMBO BRANCH B: USE 14 DAY API ARRIVE MONTH != CUTOFF MONTH
+                    dayNum = 0;
+                    Log.d("DEBUG LOG", "arriveMonth != leaveMonth");
+                    Log.d("DEBUG LOG", "daysInArriveMonth: " + daysInArriveMonth);
+                    Log.d("DEBUG LOG", "arriveDay initial: " + arriveDay);
+
+                    if (cityName.equals("") || countryCode.equals("") || arriveMonth_str.equals("")) {
+                        Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        tempUrl = forecast14Days_url + "?q=" + cityName + "," + countryCode + "&cnt=" + 14 + "&appid=" + appid;
+                        Log.d("DEBUG LOG", "BRANCH B - Arrive Month 14 Day API tempUrl: " + tempUrl);
+
+                        NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                            @Override
+                            public void onNetworkTaskComplete(String response) {
+                                // Do something with the response here
+                                Log.d("DEBUG LOG", "BRANCH B - Arrive Month 14 Day API Response: " + response);
+
+                                // Handle the response
+                                if (response != null) {
+
+                                    double averageMax = 0;
+                                    double averageMin = 0;
+                                    double chanceOfRain = 0;
+                                    double averageCloudCoverage = 0;
+                                    for (int i = daysBtwNowAndArrive - 1; i <= num14APIDays; i++) {
+
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        JsonArray listArray = jsonObject.getAsJsonArray("list");
+                                        JsonObject firstListObject = listArray.get(i).getAsJsonObject();
+                                        JsonObject tempObject = firstListObject.getAsJsonObject("temp");
+                                        averageMax = tempObject.get("max").getAsDouble();
+                                        averageMin = tempObject.get("min").getAsDouble();
+                                        chanceOfRain = 100 * (firstListObject.get("pop").getAsDouble());
+                                        averageCloudCoverage = firstListObject.get("clouds").getAsDouble();
+                                        Log.d("DEBUG LOG", "Arrive averageMax: " + ((int) Math.round(averageMax)));
+                                        Log.d("DEBUG LOG", "Arrive averageMin: " + ((int) Math.round(averageMin)));
+                                        Log.d("DEBUG LOG", "Arrive chanceOfRain: " + ((int) Math.round(chanceOfRain)));
+                                        Log.d("DEBUG LOG", "Arrive averageCloudCoverage: " + ((int) Math.round(averageCloudCoverage)));
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum).setChanceOfRain((int) Math.round(chanceOfRain));
+                                            weatherDayList.get(dayNum).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMaxTemp: " + weatherDayList.get(dayNum).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgMinTemp: " + weatherDayList.get(dayNum).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] chanceOfRain: " + weatherDayList.get(dayNum).getChanceOfRain());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum).getAvgCloudCvrg());
+                                        }
+                                        dayNum = dayNum + 1;
+                                    }
+
+                                } else {
+                                    // Handle the error or null response
+                                    dayNum = dayNum;
+                                }
+                            }
+                        });
+                        networkTask.execute();
+                    }
+
+
+                    // COMBO BRANCH B: USE HISTORICAL API ARRIVE MONTH = CUTOFF MONTH
+                    Log.d("DEBUG LOG", "daysAfterCutOff: " + numHistoricalAPIDays);
+                    Log.d("DEBUG LOG", "dayNum: " + dayNum);
+
+                    for (int i = cutOffDay + 1; i <= (numHistoricalAPIDays + cutOffDay); i++) {
+                        if (cityName.equals("") || countryCode.equals("") || leaveMonth_str.equals("")) {
+                            Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            tempUrl = historical_month_url + "?q=" + cityName + "," + countryCode + "&month=" + leaveMonth_str + "&day=" + leaveDay_str + "&appid=" + appid;
+                            Log.d("DEBUG LOG", "BRANCH B - Historical API tempUrl: " + tempUrl);
+
+                            NetworkTask networkTask = new NetworkTask(tempUrl, new NetworkTaskListener() {
+                                @Override
+                                public void onNetworkTaskComplete(String response) {
+                                    Log.d("DEBUG LOG", "BRANCH B - Historical API Response: " + response);
+
+                                    // Handle the response
+                                    if (response != null) {
+
+                                        dayNum = dayNum + 1;
+                                        Log.d("DEBUG LOG", "Arrive count: " + dayNum);
+                                        Gson gson = new Gson();
+                                        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+                                        double averageMax = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_max").getAsDouble() - 273.15;
+                                        double averageMin = jsonObject.getAsJsonObject("result").getAsJsonObject("temp").get("average_min").getAsDouble() - 273.15;
+                                        double averageRainMM = 100 * (jsonObject.getAsJsonObject("result").getAsJsonObject("precipitation").get("mean").getAsDouble());
+                                        double averageCloudCoverage = jsonObject.getAsJsonObject("result").getAsJsonObject("clouds").get("mean").getAsDouble();
+
+                                        if (weatherDayList != null) {
+                                            weatherDayList.get(dayNum - 1).setAvgMinTemp((int) Math.round(averageMin));
+                                            weatherDayList.get(dayNum - 1).setAvgRainMM((int) Math.round(averageRainMM));
+                                            weatherDayList.get(dayNum - 1).setAvgMaxTemp((int) Math.round(averageMax));
+                                            weatherDayList.get(dayNum - 1).setAvgCloudCvrg((int) Math.round(averageCloudCoverage));
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMaxTemp: " + weatherDayList.get(dayNum - 1).getAvgMaxTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgMinTemp: " + weatherDayList.get(dayNum - 1).getAvgMinTemp());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgRainMM: " + weatherDayList.get(dayNum - 1).getAvgRainMM());
+                                            Log.d("DEBUG LOG", "Arrive weatherDay[" + (dayNum - 1) + "] AvgCloudCvrg: " + weatherDayList.get(dayNum - 1).getAvgCloudCvrg());
+                                        }
+                                    } else {
+                                        // Handle the error or null reponse
+                                        dayNum = dayNum;
+                                    }
+                                }
+                            });
+                            networkTask.execute();
+                            leaveDay = leaveDay + 1;
+                            leaveDay_str = Integer.toString(leaveDay);
+                        }
+                    }
+
+                } else {
+                    Toast.makeText(MainActivity.this, "ERROR!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "ERROR! Trip longer than 14 Days!", Toast.LENGTH_SHORT).show();
+            Log.d("DEBUG LOG", "ERROR! totalTripDays: " + totalTripDays);
         }
     }
 }
