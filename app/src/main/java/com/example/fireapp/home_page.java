@@ -28,8 +28,8 @@ public class home_page extends AppCompatActivity {
         // Configure User button
         btnConfigure.setOnClickListener(view -> {
             // take to the configure user page
-            //Intent intent = new Intent(home_page.this, configure_user.class);
-            //startActivity(intent);
+            Intent intent = new Intent(home_page.this, configure_user.class);
+            startActivity(intent);
         });
 
         // Weather button
