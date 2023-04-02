@@ -42,7 +42,7 @@ public class currency_converter extends AppCompatActivity {
         Spinner fromSpinner = findViewById(R.id.from_spinner);
         Spinner toSpinner = findViewById(R.id.to_spinner);
         EditText amountEditText = findViewById(R.id.amount_edit_text);
-        Button convertButton = findViewById(R.id.convert_button);
+        Button convertButton = findViewById(R.id.btnConvert);
         Button backButton = findViewById(R.id.btnBack);
         TextView resultTextView = findViewById(R.id.result_text_view);
 

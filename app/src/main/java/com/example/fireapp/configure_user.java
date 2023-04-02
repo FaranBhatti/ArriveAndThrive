@@ -2,10 +2,12 @@ package com.example.fireapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
@@ -24,8 +26,6 @@ import java.net.URLConnection;
 
 public class configure_user extends AppCompatActivity {
 
-    private final String WeatherAPIKey = "5a055dbf56ab6f415567d8a482c453f2";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,21 +33,12 @@ public class configure_user extends AppCompatActivity {
 
         // obtaining the buttons
         Button btnConfirm = findViewById(R.id.btnConfirm);
-        Button btnResetFields = findViewById(R.id.btnResetFields);
         Button btnBack = findViewById(R.id.btnBack);
 
         // obtaining the fields the user has entered
-        EditText edtCity = findViewById(R.id.city_edittext);
-        EditText edtCountryCode = findViewById(R.id.country_edittext);
-        EditText edtLengthOfTrip = findViewById(R.id.length_edittext);
-
-        // btnResetFields on click listener to reset
-        btnResetFields.setOnClickListener(view -> {
-            // set the fields to empty
-            edtCity.setText("");
-            edtCountryCode.setText("");
-            edtLengthOfTrip.setText("");
-        });
+        Spinner edtCity = findViewById(R.id.city_spinner);
+        Spinner edtCountryCode = findViewById(R.id.country_code_spinner);
+        Spinner edtLengthOfTrip = findViewById(R.id.length_spinner);
 
         // btnBacks on click listener to go back to the previous activity
         btnBack.setOnClickListener(view -> {
@@ -58,49 +49,72 @@ public class configure_user extends AppCompatActivity {
         btnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String city = edtCity.getText().toString();
-                String countryCode = edtCountryCode.getText().toString();
-                String lengthStr = edtLengthOfTrip.getText().toString();
+                // obtain city, country code and length of trip
+                String city = edtCity.getSelectedItem().toString();
+                String countryCode = edtCountryCode.getSelectedItem().toString();
+                String lengthStr = edtLengthOfTrip.getSelectedItem().toString();
+
+                // if error_check function is true then do something
+                if (error_check(city, countryCode, lengthStr)) {
+                    // store those in a bundle and pass it to the next activity
+                    Bundle bundle = new Bundle();
+                    bundle.putString("city", city);
+                    bundle.putString("countryCode", countryCode);
+                    bundle.putString("lengthStr", lengthStr);
+
+                    // create a new intent and pass the bundle to the next activity
+                    Intent intent = new Intent(configure_user.this, home_page.class);
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                }
+                else {
+                    // if error_check function is false then do something
+                    Toast.makeText(configure_user.this, "Please enter valid input", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+            private boolean error_check(String city, String countryCode, String lengthStr) {
+                boolean isValidCity = false;
+
+                switch (countryCode) {
+                    case "US":
+                        if (city.equals("San Francisco") || city.equals("Los Angeles") || city.equals("New York")) {
+                            isValidCity = true;
+                        }
+                        break;
+                    case "CA":
+                        if (city.equals("Toronto") || city.equals("Vancouver") || city.equals("Montreal")) {
+                            isValidCity = true;
+                        }
+                        break;
+                    case "CH":
+                        if (city.equals("Zurich") || city.equals("Geneva") || city.equals("Bern")) {
+                            isValidCity = true;
+                        }
+                        break;
+                    case "DE":
+                        if (city.equals("Berlin") || city.equals("Hamburg") || city.equals("Munich")) {
+                            isValidCity = true;
+                        }
+                        break;
+                    case "SE":
+                        if (city.equals("Stockholm") || city.equals("Gothenburg") || city.equals("Malmö")) {
+                            isValidCity = true;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                if (isValidCity) {
+                    return true;
+                } else {
+                    // throw a toast error
+                    Toast.makeText(configure_user.this, "Please enter a valid city", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
             }
         });
-    }
-    // function to test if user enters a valid city
-    public static boolean isValidCity(String cityName, String apiKey) {
-        String url = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + apiKey;
-        try {
-            URL obj = new URL(url);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("GET");
-            int responseCode = con.getResponseCode();
-            // print value of responseCode
-            System.out.println("Response Code: " + responseCode);
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    // function to test if user enters a valid country code
-    public static boolean isValidCountryCode(String countryCode, String apiKey) {
-        String url = "https://api.openweathermap.org/data/2.5/weather?q=London," + countryCode + "&appid=" + apiKey;
-        try {
-            URLConnection connection = new URL(url).openConnection();
-            connection.connect();
-            InputStream inputStream = connection.getInputStream();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-            JSONObject jsonObject = new JSONObject(stringBuilder.toString());
-            String code = jsonObject.getJSONObject("sys").getString("country");
-            return code.equalsIgnoreCase(countryCode);
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 }
