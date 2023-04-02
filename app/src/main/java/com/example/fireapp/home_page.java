@@ -33,7 +33,7 @@ public class home_page extends AppCompatActivity {
         });
 
         // Weather button
-        btnConfigure.setOnClickListener(view -> {
+        btnWeather.setOnClickListener(view -> {
             // take to the weather page
             //Intent intent = new Intent(home_page.this, weather.class);
             //startActivity(intent);

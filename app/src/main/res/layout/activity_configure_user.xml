@@ -82,21 +82,23 @@
 
         <Button
             android:id="@+id/btnConfirm"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:text="Confirm" />
+            android:layout_weight="1"
+            android:text="Confirm"
+            app:icon="@drawable/check" />
 
         <Button
             android:id="@+id/btnResetFields"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:text="Reset Fields" />
+            android:layout_weight="1"
+            android:text="Reset Fields"
+            app:icon="@drawable/eraser" />
 
     </LinearLayout>
 
