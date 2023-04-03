@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string-array name="us_cities">
+        <item>San Francisco</item>
+        <item>Los Angeles</item>
+        <item>New York</item>
+    </string-array>
+
+    <string-array name="ca_cities">
+        <item>Toronto</item>
+        <item>Montreal</item>
+        <item>Vancouver</item>
+    </string-array>
+
+    <string-array name="ch_cities" >
+        <item>Zurich</item>
+        <item>Geneva</item>
+        <item>Basel</item>
+    </string-array>
+
+    <string-array name="de_cities" >
+        <item>Berlin</item>
+        <item>Hamburg</item>
+        <item>Munich</item>
+    </string-array>
+
+    <string-array name="se_cities" >
+        <item>Stockholm</item>
+        <item>Gothenburg</item>
+        <item>Malmö</item>
+    </string-array>
+
+    <string-array name="empty_cities"
+        tools:ignore="MissingTranslation">
+    </string-array>
+
+    // create a country code array
+    <string-array name="country_codes">
+        <item>US</item> // United States
+        <item>CA</item> // Canada
+        <item>CH</item> // Switzerland
+        <item>DE</item> // Germany
+        <item>SE</item> // Sweden
+        <item>JP</item> // Japan
+    </string-array>
+
+    <string-array name="currency_array">
+        <item>USD</item>
+        <item>EUR</item>
+        <item>JPY</item>
+        <item>GBP</item>
+        <item>CAD</item>
+        <item>CHF</item>
+        <item>AUD</item>
+        <item>CNY</item>
+        <item>HKD</item>
+        <item>NZD</item>
+    </string-array>
+
+    <string-array name="city_names">
+        // list 3 cities in United States (US)
+        <item>San Francisco</item>
+        <item>Los Angeles</item>
+        <item>New York</item>
+        // list 3 cities in Canada (CA)
+        <item>Toronto</item>
+        <item>Vancouver</item>
+        <item>Montreal</item>
+        // list 3 cities in Switzerland (CH)
+        <item>Zurich</item>
+        <item>Geneva</item>
+        <item>Bern</item>
+        // list 3 cities in Germany (DE)
+        <item>Berlin</item>
+        <item>Hamburg</item>
+        <item>Munich</item>
+        // list 3 cities in Sweden (SE)
+        <item>Stockholm</item>
+        <item>Gothenburg</item>
+        <item>Malmö</item>
+        // list 3 cities in Japan (JP)
+        <item>Tokyo</item>
+        <item>Osaka</item>
+        <item>Nagoya</item>
+    </string-array>
+
+    <string-array name="months_array">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+
+    <string-array name="days_array">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+        <item>31</item>
+    </string-array>
+
+    // create an array of years from 2023 to 2040
+    <string-array name="years_array">
+        <item>2023</item>
+        <item>2024</item>
+        <item>2025</item>
+        <item>2026</item>
+        <item>2027</item>
+        <item>2028</item>
+        <item>2029</item>
+        <item>2030</item>
+        <item>2031</item>
+        <item>2032</item>
+        <item>2033</item>
+        <item>2034</item>
+        <item>2035</item>
+        <item>2036</item>
+        <item>2037</item>
+        <item>2038</item>
+        <item>2039</item>
+        <item>2040</item>
+    </string-array>
+
+    <string-array name="trip_length">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+    </string-array>
+
+    <string-array name="feb_days">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+    </string-array>
+
+    <string-array name="apr_jun_sep_nov_days">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+    </string-array>
+
+    <string-array name="jan_mar_may_jul_aug_oct_dec_days">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+        <item>31</item>
+    </string-array>
+
+</resources>

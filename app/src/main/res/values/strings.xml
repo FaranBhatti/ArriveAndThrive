@@ -6,17 +6,4 @@
     <string name="result_text">result</string>
     <string name="amt_to_convert_hint">Amount to convert</string>
 
-    <string-array name="currency_array">
-        <item>USD</item>
-        <item>EUR</item>
-        <item>JPY</item>
-        <item>GBP</item>
-        <item>CAD</item>
-        <item>CHF</item>
-        <item>AUD</item>
-        <item>CNY</item>
-        <item>HKD</item>
-        <item>NZD</item>
-    </string-array>
-
 </resources>
