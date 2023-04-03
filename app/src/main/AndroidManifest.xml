@@ -15,6 +15,12 @@
         android:theme="@style/Theme.ArriveAndThrive"
         tools:targetApi="31">
         <activity
+            android:name=".display_weather_report"
+            android:exported="false" />
+        <activity
+            android:name=".destination_weather"
+            android:exported="false" />
+        <activity
             android:name=".configure_user"
             android:exported="false" />
         <activity

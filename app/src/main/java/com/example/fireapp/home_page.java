@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 
 import com.example.fireapp.R;
@@ -35,8 +36,47 @@ public class home_page extends AppCompatActivity {
         // Weather button
         btnWeather.setOnClickListener(view -> {
             // take to the weather page
-            //Intent intent = new Intent(home_page.this, weather.class);
-            //startActivity(intent);
+            Intent intent = new Intent(home_page.this, destination_weather.class);
+            startActivity(intent);
+
+            // obtain bundle data from the previous activity
+            Bundle bundle = getIntent().getExtras();
+
+            // extract the data
+            String cityName = bundle.getString("city");
+            String countryCode = bundle.getString("countryCode");
+
+            String arriveMonth = bundle.getString("arriveMonth");
+            String arriveDay = bundle.getString("arriveDay");
+            String arriveYear = bundle.getString("arriveYear");
+
+            String leaveMonth = bundle.getString("leaveMonth");
+            String leaveDay = bundle.getString("leaveDay");
+            String leaveYear = bundle.getString("leaveYear");
+
+            // print a logcat output for the above values
+            Log.d("BundleCodes", cityName);
+            Log.d("BundleCodes", countryCode);
+            Log.d("BundleCodes", arriveMonth);
+            Log.d("BundleCodes", arriveDay);
+            Log.d("BundleCodes", arriveYear);
+            Log.d("BundleCodes", leaveMonth);
+            Log.d("BundleCodes", leaveDay);
+            Log.d("BundleCodes", leaveYear);
+
+            // pass these values to the next activity
+            intent.putExtra("cityName", cityName);
+            intent.putExtra("countryCode", countryCode);
+            intent.putExtra("arriveMonth", arriveMonth);
+            intent.putExtra("arriveDay", arriveDay);
+            intent.putExtra("arriveYear", arriveYear);
+            intent.putExtra("leaveMonth", leaveMonth);
+            intent.putExtra("leaveDay", leaveDay);
+            intent.putExtra("leaveYear", leaveYear);
+
+            // create a new intent and pass the bundle to the next activity
+            intent.putExtras(bundle);
+            startActivity(intent);
         });
 
         // Currency Converter button
