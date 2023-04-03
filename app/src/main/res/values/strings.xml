@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ArriveAndThrive</string>
+    <string name="dayfont">30sp</string>
 </resources>
