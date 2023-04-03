@@ -13,8 +13,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.time.LocalDate;
-import java.time.Month;
-
 public class configure_user extends AppCompatActivity {
 
     @Override
@@ -41,9 +39,7 @@ public class configure_user extends AppCompatActivity {
         Spinner arriveYearSpinner = findViewById(R.id.arrival_year_spinner);
 
         // btnBacks on click listener to go back to the previous activity
-        btnBack.setOnClickListener(view -> {
-            finish();
-        });
+        btnBack.setOnClickListener(view -> finish());
 
 
         // update the city spinner based on the selected country
@@ -89,53 +85,50 @@ public class configure_user extends AppCompatActivity {
         });
 
         // btnConfirm on click listener to confirm the user's input
-        btnConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnConfirm.setOnClickListener(v -> {
 
-                // obtain city, country code and length of trip
-                String cityName = citySpinner.getSelectedItem().toString();
-                String countryCode = countrySpinner.getSelectedItem().toString();
+            // obtain city, country code and length of trip
+            String cityName = citySpinner.getSelectedItem().toString();
+            String countryCode = countrySpinner.getSelectedItem().toString();
 
-                // obtain departure date
-                String departMonth = departMonthSpinner.getSelectedItem().toString();
-                String departDay = departDaySpinner.getSelectedItem().toString();
-                String departYear = departYearSpinner.getSelectedItem().toString();
+            // obtain departure date
+            String departMonth = departMonthSpinner.getSelectedItem().toString();
+            String departDay = departDaySpinner.getSelectedItem().toString();
+            String departYear = departYearSpinner.getSelectedItem().toString();
 
-                // obtain arrive date
-                String arriveMonth = arriveMonthSpinner.getSelectedItem().toString();
-                String arriveDay = arriveDaySpinner.getSelectedItem().toString();
-                String arriveYear = arriveYearSpinner.getSelectedItem().toString();
+            // obtain arrive date
+            String arriveMonth = arriveMonthSpinner.getSelectedItem().toString();
+            String arriveDay = arriveDaySpinner.getSelectedItem().toString();
+            String arriveYear = arriveYearSpinner.getSelectedItem().toString();
 
-                // function converting the month to a number
-                departMonth = String.valueOf(convertMonth(departMonth));
-                arriveMonth = String.valueOf(convertMonth(arriveMonth));
+            // function converting the month to a number
+            departMonth = String.valueOf(convertMonth(departMonth));
+            arriveMonth = String.valueOf(convertMonth(arriveMonth));
 
-                if (error_check(departMonth, departDay, departYear, arriveMonth, arriveDay, arriveYear)) {
-                    // store those in a bundle and pass it to the next activity
-                    Bundle bundle = new Bundle();
-                    bundle.putString("city", cityName);
-                    bundle.putString("countryCode", countryCode);
+            if (error_check(departMonth, departDay, departYear, arriveMonth, arriveDay, arriveYear)) {
+                // store those in a bundle and pass it to the next activity
+                Bundle bundle = new Bundle();
+                bundle.putString("city", cityName);
+                bundle.putString("countryCode", countryCode);
 
-                    // arrive date
-                    bundle.putString("arriveMonth", arriveMonth);
-                    bundle.putString("arriveDay", arriveDay);
-                    bundle.putString("arriveYear", arriveYear);
+                // arrive date
+                bundle.putString("arriveMonth", arriveMonth);
+                bundle.putString("arriveDay", arriveDay);
+                bundle.putString("arriveYear", arriveYear);
 
-                    // departure date
-                    bundle.putString("leaveMonth", departMonth);
-                    bundle.putString("leaveDay", departDay);
-                    bundle.putString("leaveYear", departYear);
+                // departure date
+                bundle.putString("leaveMonth", departMonth);
+                bundle.putString("leaveDay", departDay);
+                bundle.putString("leaveYear", departYear);
 
-                    // create a new intent and pass the bundle to the next activity
-                    Intent intent = new Intent(configure_user.this, home_page.class);
-                    intent.putExtras(bundle);
-                    startActivity(intent);
-                }
-                else {
-                    // if error_check function is false then do something
-                    Toast.makeText(configure_user.this, "Please enter valid date inputs", Toast.LENGTH_SHORT).show();
-                }
+                // create a new intent and pass the bundle to the next activity
+                Intent intent = new Intent(configure_user.this, home_page.class);
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+            else {
+                // if error_check function is false then do something
+                Toast.makeText(configure_user.this, "Please enter valid date inputs", Toast.LENGTH_SHORT).show();
             }
         });
     }

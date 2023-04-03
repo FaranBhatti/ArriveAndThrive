@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- MONTH AND DAY BOX SIZES -->
+    <dimen name="LAYOUT_WIDTH">102sp</dimen>
+    <dimen name="LAYOUT_HEIGHT">66sp</dimen>
+
+    <dimen name="MONTHFONT">27sp</dimen>
+    <dimen name="PADDING_TOP_MONTH">1sp</dimen>
+    <dimen name="PADDING_BOTTOM_MONTH">1sp</dimen>
+    <dimen name="MARGIN_TOP_MONTH">1sp</dimen>
+    <dimen name="MARGIN_BOTTOM_MONTH">-10sp</dimen>
+
+    <dimen name="DAYFONT">57sp</dimen>
+    <dimen name="PADDING_TOP_DAY">1sp</dimen>
+    <dimen name="MARGIN_TOP_DAY">-40sp</dimen>
+    <dimen name="MARGIN_BOTTOM_DAY">60sp</dimen>
+
+    <!-- API SIZES -->
+    <dimen name="APIFONT">21sp</dimen>
+    <dimen name="LAYOUT_WIDTH_API">130sp</dimen>
+    <dimen name="LAYOUT_HEIGHT_API">54sp</dimen>
+    <dimen name="PADDING_TOP_API">1sp</dimen>
+    <dimen name="MARGIN_LEFT_API">66sp</dimen>
+    <dimen name="MARGIN_TOP_API">1sp</dimen>
+    <dimen name="MARGIN_BOTTOM_API">0sp</dimen>
+
+    <!-- ALL THE REST SIZES -->
+    <dimen name="RESTFONT">19sp</dimen>
+    <dimen name="LAYOUT_WIDTH_REST">66sp</dimen>
+    <dimen name="LAYOUT_HEIGHT_REST">54sp</dimen>
+    <dimen name="PADDING_TOP_REST">0sp</dimen>
+    <dimen name="PADDING_BOTTOM_REST">-30sp</dimen>
+    <dimen name="MARGIN_TOP_REST">-39sp</dimen>
+    <dimen name="MARGIN_BOTTOM_REST">-50sp</dimen>
+
+    <!-- ALL THE REST LEFT MARGINS -->
+    <dimen name="MARGIN_LEFT_MAX">20sp</dimen>
+    <dimen name="MARGIN_LEFT_MIN">40sp</dimen>
+    <dimen name="MARGIN_LEFT_RAIN">60sp</dimen>
+    <dimen name="MARGIN_LEFT_CLOUDS">80sp</dimen>
+
+</resources>
