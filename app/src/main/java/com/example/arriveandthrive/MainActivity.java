@@ -56,16 +56,22 @@ public class MainActivity extends AppCompatActivity {
     private DecimalFormat df = new DecimalFormat("#.##");
     private int arriveYear;
     private String arriveYear_str;
+    private String arriveYear_str_og;
     private int arriveMonth;
     private String arriveMonth_str;
+    private String arriveMonth_str_og;
     private int arriveDay;
     private String arriveDay_str;
+    private String arriveDay_str_og;
     private int leaveYear;
     private String leaveYear_str;
+    private String leaveYear_str_og;
     private int leaveMonth;
     private String leaveMonth_str;
+    private String leaveMonth_str_og;
     private int leaveDay;
     private String leaveDay_str;
+    private String leaveDay_str_og;
     private int leaveDayLoop = 1;
     private String leaveDayLoop_str = "1";
     private int daysInArriveMonth;
@@ -113,15 +119,15 @@ public class MainActivity extends AppCompatActivity {
 
         // DUMMY VARIABLES FOR TESTING
         arriveYear = 2023;
-        arriveMonth = 3;
-        arriveDay = 27;
+        arriveMonth = 6;
+        arriveDay = 10;
 
         leaveYear = 2023;
-        leaveMonth = 4;
-        leaveDay = 9;
+        leaveMonth = 6;
+        leaveDay = 23;
 
         // must change this to be towards end of month to test 14 DAY API leaveMonth != arriveMonth
-        currentZonedDate = LocalDate.of(2023, 3, 25);
+        //currentZonedDate = LocalDate.of(2023, 3, 25);
         Log.d("DEBUG LOG", "currentZonedDate: " + currentZonedDate);
 
         countryCode = "CA";
@@ -151,10 +157,16 @@ public class MainActivity extends AppCompatActivity {
 
         // CONVERT MONTHS AND DAYS TO STRINGS
         arriveYear_str = Integer.toString(arriveYear);
+        arriveYear_str_og = Integer.toString(arriveYear);
+        arriveMonth_str_og = Integer.toString(arriveMonth);
         arriveMonth_str = Integer.toString(arriveMonth);
+        arriveDay_str_og = Integer.toString(arriveDay);
         arriveDay_str = Integer.toString(arriveDay);
+        leaveYear_str_og = Integer.toString(leaveYear);
         leaveYear_str = Integer.toString(leaveYear);
+        leaveMonth_str_og = Integer.toString(leaveMonth);
         leaveMonth_str = Integer.toString(leaveMonth);
+        leaveDay_str_og = Integer.toString(leaveDay);
         leaveDay_str = Integer.toString(leaveDay);
 
 
@@ -827,12 +839,13 @@ public class MainActivity extends AppCompatActivity {
 
         intent_MainActivity.putExtra("countryCode", countryCode);
         intent_MainActivity.putExtra("cityName", cityName);
-        intent_MainActivity.putExtra("arriveYear", arriveYear_str);
-        intent_MainActivity.putExtra("arriveMonth", arriveMonth_str);
-        intent_MainActivity.putExtra("arriveDay", arriveDay_str);
-        intent_MainActivity.putExtra("leaveYear", leaveYear_str);
-        intent_MainActivity.putExtra("leaveMonth", leaveMonth_str);
-        intent_MainActivity.putExtra("leaveDay", leaveDay_str);
+        intent_MainActivity.putExtra("arriveYear", arriveYear_str_og);
+        intent_MainActivity.putExtra("arriveMonth", arriveMonth_str_og);
+        intent_MainActivity.putExtra("arriveDay", arriveDay_str_og);
+        Log.d("DEBUG LOG", "arriveDay MAIN ACTIVITY BUNDLE: " + arriveDay_str_og);
+        intent_MainActivity.putExtra("leaveYear", leaveYear_str_og);
+        intent_MainActivity.putExtra("leaveMonth", leaveMonth_str_og);
+        intent_MainActivity.putExtra("leaveDay", leaveDay_str_og);
         startActivity(intent_MainActivity);
     }
 }

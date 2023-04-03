@@ -110,6 +110,7 @@ public class WeatherDisplay extends AppCompatActivity {
                     } else {
                         tempDate = arriveDate.plusDays((long) i);
                         tempMonth = tempDate.getMonth();
+                        Log.d("DEBUG LOG", "tempDate: " + tempDate);
                         month = tempMonth.getValue();
                         Log.d("DEBUG LOG", "month: " + month);
                         day = i;
