@@ -43,6 +43,15 @@
     </LinearLayout>
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:text="Location"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
         android:id="@+id/country_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,16 +76,83 @@
         android:entries="@array/city_names" />
 
     <TextView
-        android:id="@+id/length_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="How long is your trip? (in days)" />
+        android:fontFamily="sans-serif-condensed"
+        android:text="Date of Arrival in Location"
+        android:layout_marginTop="20dp"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
-    <Spinner
-        android:id="@+id/length_spinner"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:entries="@array/trip_length" />
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/arrival_month_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/months_array"
+            tools:ignore="DuplicateIds" />
+
+        <Spinner
+            android:id="@+id/arrival_day_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/days_array"
+            tools:ignore="DuplicateIds" />
+
+        <Spinner
+            android:id="@+id/arrival_year_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/years_array"
+            tools:ignore="DuplicateIds" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:text="Date of Departure from Location"
+        android:layout_marginTop="20dp"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/departure_month_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/months_array"/>
+
+        <Spinner
+            android:id="@+id/departure_day_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/days_array"/>
+
+        <Spinner
+            android:id="@+id/departure_year_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/years_array"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
