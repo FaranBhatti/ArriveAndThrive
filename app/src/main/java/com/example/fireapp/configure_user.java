@@ -231,13 +231,19 @@ public class configure_user extends AppCompatActivity {
         LocalDate leaveDate = LocalDate.of(Integer.parseInt(departYear), Integer.parseInt(departMonth), Integer.parseInt(departDay));
         long totalTripDays = (leaveDate.toEpochDay() - arriveDate.toEpochDay()) + 1;
 
-        // log output for the totalTripDays
-        Log.d("totalTripDays", String.valueOf(totalTripDays));
+        // check if arriveDate or leaveDate is before the current date
+        if (arriveDate.isBefore(LocalDate.now()) || leaveDate.isBefore(LocalDate.now())) {
+            // toast for date being before current date
+            Toast.makeText(configure_user.this, "Please enter a date that is not before the current date", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
-        // log output for arriveDate and leaveDate
-        Log.d("arriveDate", String.valueOf(arriveDate));
-        Log.d("leaveDate", String.valueOf(leaveDate));
-
+        // check if leaveDate is before arriveDate
+        else if (leaveDate.isBefore(arriveDate)) {
+            // toast for leave date being before arrive date
+            Toast.makeText(configure_user.this, "Please enter a departure date that is after the arrival date", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
         // check if departure data is before the arrival date and if the dates are within 14 days of each other
         if (arriveDate.isBefore(leaveDate) && totalTripDays <= 14) {
