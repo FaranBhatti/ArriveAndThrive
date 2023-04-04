@@ -117,6 +117,28 @@ public class destination_weather extends AppCompatActivity {
         LocalDate currentZonedDate = zonedDate.toLocalDate();
 
 
+        // BUNDLE FOR RETRIEVING DATE AND LOCATION INFORMATION
+        Bundle dates_and_location = getIntent().getExtras();
+        if (dates_and_location != null) {
+            countryCode = dates_and_location.getString("countryCode");
+            cityName = dates_and_location.getString("cityName");
+            arriveYear = Integer.parseInt(dates_and_location.getString("arriveYear"));
+            arriveMonth = Integer.parseInt(dates_and_location.getString("arriveMonth"));
+            arriveDay = Integer.parseInt(dates_and_location.getString("arriveDay"));
+            leaveYear = Integer.parseInt(dates_and_location.getString("leaveYear"));
+            leaveMonth = Integer.parseInt(dates_and_location.getString("leaveMonth"));
+            leaveDay = Integer.parseInt(dates_and_location.getString("leaveDay"));
+        }
+
+        Log.d("bundle_data_in_weather", "countryCode: " + countryCode);
+        Log.d("bundle_data_in_weather", "cityName: " + cityName);
+        Log.d("bundle_data_in_weather", "arriveYear: " + arriveYear);
+        Log.d("bundle_data_in_weather", "arriveMonth: " + arriveMonth);
+        Log.d("bundle_data_in_weather", "arriveDay: " + arriveDay);
+        Log.d("bundle_data_in_weather", "leaveYear: " + leaveYear);
+        Log.d("bundle_data_in_weather", "leaveMonth: " + leaveMonth);
+        Log.d("bundle_data_in_weather", "leaveDay: " + leaveDay);
+
         /*
         // DUMMY VARIABLES FOR TESTING
         arriveYear = 2023;
@@ -144,30 +166,6 @@ public class destination_weather extends AppCompatActivity {
         // |   14 Day only: aM!=lM    |   4/25   |  5/8    |   4/24    |    YES     |
         // |   Combo: aM=cM,lM=cM     |   2/7    |  2/20   |   2/1     |    YES     |
         // |   Combo: aM!=cM,lM=cM    |   3/27   |  4/9    |   3/25    |    YES     |
-
-
-        // BUNDLE FOR RETRIEVING DATE AND LOCATION INFORMATION
-        Bundle dates_and_location = getIntent().getExtras();
-        if (dates_and_location != null) {
-            countryCode = dates_and_location.getString("countryCode");
-            cityName = dates_and_location.getString("cityName");
-            arriveYear = Integer.parseInt(dates_and_location.getString("arriveYear"));
-            arriveMonth = Integer.parseInt(dates_and_location.getString("arriveMonth"));
-            arriveDay = Integer.parseInt(dates_and_location.getString("arriveDay"));
-            leaveYear = Integer.parseInt(dates_and_location.getString("leaveYear"));
-            leaveMonth = Integer.parseInt(dates_and_location.getString("leaveMonth"));
-            leaveDay = Integer.parseInt(dates_and_location.getString("leaveDay"));
-        }
-
-        Log.d("bundle_data_in_weather", "countryCode: " + countryCode);
-        Log.d("bundle_data_in_weather", "cityName: " + cityName);
-        Log.d("bundle_data_in_weather", "arriveYear: " + arriveYear);
-        Log.d("bundle_data_in_weather", "arriveMonth: " + arriveMonth);
-        Log.d("bundle_data_in_weather", "arriveDay: " + arriveDay);
-        Log.d("bundle_data_in_weather", "leaveYear: " + leaveYear);
-        Log.d("bundle_data_in_weather", "leaveMonth: " + leaveMonth);
-        Log.d("bundle_data_in_weather", "leaveDay: " + leaveDay);
-
 
         // CONVERT MONTHS AND DAYS TO STRINGS
         arriveYear_str = Integer.toString(arriveYear);
