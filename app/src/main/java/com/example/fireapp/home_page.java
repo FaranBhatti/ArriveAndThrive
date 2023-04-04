@@ -54,16 +54,6 @@ public class home_page extends AppCompatActivity {
             String leaveDay = bundle.getString("leaveDay");
             String leaveYear = bundle.getString("leaveYear");
 
-            // print a logcat output for the above values
-            Log.d("BundleCodes", cityName);
-            Log.d("BundleCodes", countryCode);
-            Log.d("BundleCodes", arriveMonth);
-            Log.d("BundleCodes", arriveDay);
-            Log.d("BundleCodes", arriveYear);
-            Log.d("BundleCodes", leaveMonth);
-            Log.d("BundleCodes", leaveDay);
-            Log.d("BundleCodes", leaveYear);
-
             // pass these values to the next activity
             intent.putExtra("cityName", cityName);
             intent.putExtra("countryCode", countryCode);
