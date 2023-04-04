@@ -72,6 +72,10 @@ public class MainActivity extends AppCompatActivity {
     private int leaveDay;
     private String leaveDay_str;
     private String leaveDay_str_og;
+    private String developerFlag;
+    private int currentYear_dev;
+    private int currentMonth_dev;
+    private int currentDay_dev;
     private int leaveDayLoop = 1;
     private String leaveDayLoop_str = "1";
     private int daysInArriveMonth;
@@ -110,6 +114,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        // BUNDLE FOR RETRIEVING DATE AND LOCATION INFORMATION
+        Bundle dates_and_location = getIntent().getExtras();
+        if (dates_and_location != null) {
+            countryCode = dates_and_location.getString("countryCode");
+            cityName = dates_and_location.getString("cityName");
+            arriveYear = Integer.parseInt(dates_and_location.getString("arriveYear"));
+            arriveMonth = Integer.parseInt(dates_and_location.getString("arriveMonth"));
+            arriveDay = Integer.parseInt(dates_and_location.getString("arriveDay"));
+            leaveYear = Integer.parseInt(dates_and_location.getString("leaveYear"));
+            leaveMonth = Integer.parseInt(dates_and_location.getString("leaveMonth"));
+            leaveDay =  Integer.parseInt(dates_and_location.getString("leaveDay"));
+            developerFlag = dates_and_location.getString("developerFlag");
+            // THESE MUST BE INITIALIZED TO 0 BEFORE PASSED IN FROM PREVIOUS ACTIVITY
+            currentYear_dev = Integer.parseInt(dates_and_location.getString("currentYear_dev"));
+            currentMonth_dev = Integer.parseInt(dates_and_location.getString("currentMonth_dev"));
+            currentDay_dev = Integer.parseInt(dates_and_location.getString("currentDay_dev"));
+        }
+
+
         // CALCULATION OF CURRENT DATE GIVEN PST TIME ZONE
         LocalDate localDate = LocalDate.now();
         ZoneId zone = ZoneId.of("America/Los_Angeles"); // PST
@@ -117,47 +140,24 @@ public class MainActivity extends AppCompatActivity {
         LocalDate currentZonedDate = zonedDate.toLocalDate();
 
 
-        // DUMMY VARIABLES FOR TESTING
-        arriveYear = 2023;
-        arriveMonth = 6;
-        arriveDay = 10;
+        // DEVELOPER DUMMY VARIABLES FOR TESTING
+        if (developerFlag.equals("true")) {
+            currentZonedDate = LocalDate.of(currentYear_dev, currentMonth_dev, currentDay_dev);
+            Log.d("DEBUG LOG", "currentZonedDate: " + currentZonedDate);
+        }
 
-        leaveYear = 2023;
-        leaveMonth = 6;
-        leaveDay = 23;
-
-        // must change this to be towards end of month to test 14 DAY API leaveMonth != arriveMonth
-        //currentZonedDate = LocalDate.of(2023, 3, 25);
-        Log.d("DEBUG LOG", "currentZonedDate: " + currentZonedDate);
-
-        countryCode = "CA";
-        cityName = "Vancouver";
 
         // |_________SCENARIO_________|__ARRIVE__|__LEAVE__|__"TODAY"__|__VERIFIED__|
         // | Historical only: aM=lM   |   6/10   |  6/23   |   Real    |    YES     |
         // | Historical only: aM!=lM  |   6/25   |  7/8    |   Real    |    YES     |
-        // |   14 Day only: aM=lM     |   4/2    |  4/15   |   Real    |    YES     |
+        // |   14 Day only: aM=lM     |   4/3    |  4/16   |   Real    |    YES     |
         // |   14 Day only: aM!=lM    |   4/25   |  5/8    |   4/24    |    YES     |
         // |   Combo: aM=cM,lM=cM     |   2/7    |  2/20   |   2/1     |    YES     |
         // |   Combo: aM!=cM,lM=cM    |   3/27   |  4/9    |   3/25    |    YES     |
 
-
-        // BUNDLE FOR RETRIEVING DATE AND LOCATION INFORMATION
-//        Bundle dates_and_location = getIntent().getExtras();
-//        if (dates_and_location != null) {
-//            countryCode = dates_and_location.getString("countryCode");
-//            cityName = dates_and_location.getString("cityName");
-//            arriveYear = dates_and_location.getString("arriveYear");
-//            arriveMonth = dates_and_location.getString("arriveMonth");
-//            arriveDay = dates_and_location.getString("arriveDay");
-//            leaveYear = dates_and_location.getString("leaveYear");
-//            leaveMonth = dates_and_location.getString("leaveMonth");
-//            leaveDay =  dates_and_location.getString("leaveDay");
-//        }
-
         // CONVERT MONTHS AND DAYS TO STRINGS
-        arriveYear_str = Integer.toString(arriveYear);
         arriveYear_str_og = Integer.toString(arriveYear);
+        arriveYear_str = Integer.toString(arriveYear);
         arriveMonth_str_og = Integer.toString(arriveMonth);
         arriveMonth_str = Integer.toString(arriveMonth);
         arriveDay_str_og = Integer.toString(arriveDay);
