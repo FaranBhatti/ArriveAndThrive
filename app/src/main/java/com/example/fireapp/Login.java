@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.fireapp.R;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +26,7 @@ public class Login extends AppCompatActivity {
     private Button btnSignup, btnLogin, btnDelete;
     private FirebaseDatabase firebaseDatabase;
     private DatabaseReference databaseReference;
-    private String username, password;
+    private String username, password, id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +85,7 @@ public class Login extends AppCompatActivity {
     // Function for adding data to the database
     private void addData() {
         // use push method to generate a unique key for a new child node
-        String id = databaseReference.push().getKey();
+        id = databaseReference.push().getKey();
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
@@ -126,6 +125,7 @@ public class Login extends AppCompatActivity {
 
                         // Go to home page
                         Intent intent = new Intent(Login.this, home_page.class);
+                        intent.putExtra("id", snapshot.getKey());
                         startActivity(intent);
                     }
                 }

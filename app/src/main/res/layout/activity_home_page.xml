@@ -53,14 +53,5 @@ tools:context=".home_page">
     android:text="Currency Converter"
     app:icon="@drawable/currency" />
 
-<Button
-    android:id="@+id/btnTicketmaster"
-    android:layout_width="match_parent"
-    android:layout_height="129dp"
-    android:layout_marginLeft="20dp"
-    android:layout_marginRight="20dp"
-    android:text="Ticketmaster"
-    app:icon="@drawable/ticketmaster" />
-
 
 </LinearLayout>

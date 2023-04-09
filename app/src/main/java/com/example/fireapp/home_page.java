@@ -24,12 +24,20 @@ public class home_page extends AppCompatActivity {
         btnConfigure = findViewById(R.id.btnConfigureUser);
         btnWeather = findViewById(R.id.btnWeather);
         btnCurrencyConverter = findViewById(R.id.btnCurrConverter);
-        btnTicketmaster = findViewById(R.id.btnTicketmaster);
 
         // Configure User button
         btnConfigure.setOnClickListener(view -> {
             // take to the configure user page
             Intent intent = new Intent(home_page.this, configure_user.class);
+            // obtain bundle data from the previous activity
+            Bundle bundle = getIntent().getExtras();
+
+            // extract the id
+            String id = bundle.getString("id");
+
+            // pass this value to the next activity
+            intent.putExtra("id", id);
+
             startActivity(intent);
         });
 
@@ -77,10 +85,10 @@ public class home_page extends AppCompatActivity {
         });
 
         // Ticketmaster button
-        btnTicketmaster.setOnClickListener(view -> {
+        //btnTicketmaster.setOnClickListener(view -> {
             // take to the ticketmaster page
             //Intent intent = new Intent(home_page.this, ticketmaster.class);
             //startActivity(intent);
-        });
+       // });
     }
 }
